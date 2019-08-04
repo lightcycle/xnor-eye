@@ -6,7 +6,7 @@ After=network.target
 [Service]
 User=pi
 WorkingDirectory=/home/pi/xnor-eye
-ExecStart=python3 xnor-eye.py
+ExecStart=/usr/bin/python3 xnor-eye.py
 Restart=always
 
 [Install]
