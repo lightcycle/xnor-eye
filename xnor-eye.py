@@ -1,9 +1,5 @@
 #!/usr/bin/env python3
-"""
-This is an example to show case about xnornet surveillance use cases.
-The example needs to work with a person classification/detection model.
-"""
-import argparse
+
 import os
 import sys
 
@@ -36,40 +32,15 @@ except ImportError:
              "    python3 -m pip install --user xnornet-<...>.whl\n\n"
              "(drop the --user if you are using a virtualenv)")
 
-
-def _make_argument_parser():
-    parser = argparse.ArgumentParser(description=__doc__, allow_abbrev=False)
-    parser.add_argument(
-        "--input_resolution", action='store', nargs=2, type=int,
-        default=(1280, 720),
-        help="Input Resolution of the camera, which is also the resolution of "
-        "the final saved image.")
-    parser.add_argument(
-        "--camera_frame_rate", action='store', type=int, default=15,
-        help="Adjust the framerate of the camera. 0 indicates a dynamic range "
-             "of framerate.")
-    parser.add_argument(
-        "--camera_brightness", action='store', type=int, default=65,
-        help="Adjust the brightness of the camera. Range from 0 to 100.")
-    parser.add_argument(
-        "--camera_shutter_speed", action='store', type=int, default=1500,
-        help="Adjust the shutter speed of the camera in microseconds. "
-        "0 means auto shutter speed."
-        "https://picamera.readthedocs.io/en/release-1.13/api_camera.html#picamera.PiCamera.shutter_speed"
-    )
-    parser.add_argument(
-        "--camera_video_stablization", action='store_true',
-        help="Whether to turn on the video stablization, video "
-        "stablization improves video during motion.")
-    return parser
-
-
+input_resolution = (1280, 720)
+camera_frame_rate = 15
+camera_brightness = 65
+camera_shutter_speed = 1500
+camera_video_stablization = True
+		 
 def main(args=None):
-    parser = _make_argument_parser()
-    args = parser.parse_args(args)
-
     # Reconstruct the input resolution to include color channel
-    input_res = (args.input_resolution[0], args.input_resolution[1], 3)
+    input_res = (input_resolution[0], input_resolution[1], 3)
     SINGLE_FRAME_SIZE_RGB = input_res[0] * input_res[1] * input_res[2]
 
     # Initialize the camera, set the resolution and framerate
@@ -86,10 +57,10 @@ def main(args=None):
     stream = picamera.PiCameraCircularIO(camera, size=SINGLE_FRAME_SIZE_RGB)
     # All essential camera settings
     camera.resolution = input_res[0:2]
-    camera.framerate = args.camera_frame_rate
-    camera.brightness = args.camera_brightness
-    camera.shutter_speed = args.camera_shutter_speed
-    camera.video_stabilization = args.camera_video_stablization
+    camera.framerate = camera_frame_rate
+    camera.brightness = camera_brightness
+    camera.shutter_speed = camera_shutter_speed
+    camera.video_stabilization = camera_video_stablization
 
     # Record to the internal CircularIO
     camera.start_recording(stream, format="rgb")
