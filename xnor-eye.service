@@ -1,0 +1,13 @@
+
+[Unit]
+Description=xnor-eye
+After=network.target
+
+[Service]
+User=pi
+WorkingDirectory=/home/pi/xnor-eye
+ExecStart=python3 xnor-eye.py
+Restart=always
+
+[Install]
+WantedBy=multi-user.target

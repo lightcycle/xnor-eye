@@ -90,3 +90,6 @@ def doInference():
     image.save(byte_io, 'JPEG', quality=70)
 
     return {'labels': labels, 'image': base64.b64encode(byte_io.getvalue()).decode('ascii')}
+	
+if __name__ == "__main__":
+    app.run(host='0.0.0.0')
