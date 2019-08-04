@@ -1,5 +1,4 @@
-from flask import Flask
-from flask import jsonify
+from flask import Flask, jsonify, render_template
 from flask_api import status
 from flask_compress import Compress
 from io import BytesIO
@@ -60,16 +59,34 @@ model = xnornet.Model.load_built_in()
 app = Flask(__name__)
 Compress(app)
 
+@app.route('/')
+def index():
+    result = doInference()
+	
+    return render_template('index.html', labels = str(result['labels']), imagedata = result['image'])
+
 @app.route('/evaluate/')
 def evaluate():
+    result = doInference()
+	
+    if result is None:
+        return {'error': 'no camera data yet'}, status.HTTP_204_NO_CONTENT
+		
+    return jsonify(result)
+
+def doInference():
     cam_buffer = stream.getvalue()
     if len(cam_buffer) != SINGLE_FRAME_SIZE_RGB:
-        return {'error': 'no camera data yet'}, status.HTTP_204_NO_CONTENT
+        return None
     model_input = xnornet.Input.rgb_image(input_res[0:2], cam_buffer)
     results = model.evaluate(model_input)
+	
+    labels = []
+    for item in results:
+	    labels.append(item.label)
 
     image = Image.frombytes("RGB", input_res[0:2], cam_buffer)
     byte_io = BytesIO()
     image.save(byte_io, 'JPEG', quality=70)
 
-    return jsonify({'results': results, 'image': base64.b64encode(byte_io.getvalue()).decode('ascii')})
+    return {'labels': labels, 'image': base64.b64encode(byte_io.getvalue()).decode('ascii')}
