@@ -1,4 +1,4 @@
-from flask import Flask, jsonify, render_template
+from flask import Flask, jsonify, render_template, Response
 from flask_api import status
 from flask_compress import Compress
 from io import BytesIO
@@ -84,7 +84,22 @@ def evaluate():
 		
     return jsonify(result)
 
+def gen():
+    while True:
+        result = doInferenceRaw();
+        yield (b'--frame\r\n'
+               b'Content-Type: image/jpeg\r\n\r\n' + result['imageRaw'] + b'\r\n')
+
+@app.route('/video')
+def video_feed():
+    return Response(gen(), mimetype='multipart/x-mixed-replace; boundary=frame')
+
+
 def doInference():
+    result = doInferenceRaw()
+    return {'labels': result['labels'], 'image': base64.b64encode(result['imageRaw']).decode('ascii'), 'serial': getserial()}
+	
+def doInferenceRaw():
     cam_buffer = stream.getvalue()
     if len(cam_buffer) != SINGLE_FRAME_SIZE_RGB:
         return None
@@ -99,7 +114,7 @@ def doInference():
     byte_io = BytesIO()
     image.save(byte_io, 'JPEG', quality=70)
 
-    return {'labels': labels, 'image': base64.b64encode(byte_io.getvalue()).decode('ascii'), 'serial': getserial()}
-	
+    return {'labels': labels, 'imageRaw': byte_io.getvalue(), 'serial': getserial()}
+
 if __name__ == "__main__":
     app.run(host='0.0.0.0')
