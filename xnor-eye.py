@@ -36,10 +36,6 @@ except ImportError:
              "(drop the --user if you are using a virtualenv)")
 
 input_resolution = (1280, 720)
-camera_frame_rate = 15
-camera_brightness = 65
-camera_shutter_speed = 1500
-camera_video_stablization = True
 
 input_res = (input_resolution[0], input_resolution[1], 3)
 SINGLE_FRAME_SIZE_RGB = input_res[0] * input_res[1] * input_res[2]
@@ -53,8 +49,22 @@ except picamera.exc.PiCameraMMALError:
 			 "this sample.")
 
 stream = picamera.PiCameraCircularIO(camera, size=SINGLE_FRAME_SIZE_RGB)
+
 camera.start_recording(stream, format="rgb")
 model = xnornet.Model.load_built_in()
+
+def getserial():
+    cpuserial = "0000000000000000"
+    try:
+        f = open('/proc/cpuinfo','r')
+        for line in f:
+            if line[0:6]=='Serial':
+                cpuserial = line[10:26]
+        f.close()
+    except:
+        cpuserial = "ERROR000000000"
+ 
+    return cpuserial
 
 app = Flask(__name__)
 Compress(app)
@@ -63,7 +73,7 @@ Compress(app)
 def index():
     result = doInference()
 	
-    return render_template('index.html', labels = str(result['labels']), imagedata = result['image'])
+    return render_template('index.html', labels = str(result['labels']), imagedata = result['image'], width = input_resolution[0], height = input_resolution[1])
 
 @app.route('/evaluate/')
 def evaluate():
@@ -89,7 +99,7 @@ def doInference():
     byte_io = BytesIO()
     image.save(byte_io, 'JPEG', quality=70)
 
-    return {'labels': labels, 'image': base64.b64encode(byte_io.getvalue()).decode('ascii')}
+    return {'labels': labels, 'image': base64.b64encode(byte_io.getvalue()).decode('ascii'), 'serial': getserial()}
 	
 if __name__ == "__main__":
     app.run(host='0.0.0.0')

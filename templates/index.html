@@ -5,15 +5,24 @@
 	<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
 	<title>xnor-eye</title>
 	<style type="text/css">
-		body { font-family: Helvetica, sans-serif; background: #333; }
-		h1 { color: #ccc; }
+		body {
+			background: #333;
+		}
+		div#result {
+			background:
+				url(data:image/jpeg;base64,{{imagedata}})
+				no-repeat
+				left top;
+			color: #fff;
+			font-size: 100px;
+			width: {{width}}px;
+			height: {{height}}px;
+			text-align: center;
+		}
 	</style>
-</head>
 <body>
-	<h1>xnor-eye</h1>
-	<h2>Labels</h2>
-	{{labels}}
-	<h2>Image</h2>
-	<img src="data:image/jpeg;base64,{{imagedata}}" />
+	<div id="result">
+		{{labels}}
+	</div>
 </body>
 </html>
