@@ -37,6 +37,9 @@ except ImportError:
 
 input_resolution = (1280, 720)
 
+OUTLINE_COLOR = (255, 0, 0)  # Red
+OUTLINE_WIDTH = 5
+
 input_res = (input_resolution[0], input_resolution[1], 3)
 SINGLE_FRAME_SIZE_RGB = input_res[0] * input_res[1] * input_res[2]
 
@@ -104,13 +107,30 @@ def doInferenceRaw():
     if len(cam_buffer) != SINGLE_FRAME_SIZE_RGB:
         return None
     model_input = xnornet.Input.rgb_image(input_res[0:2], cam_buffer)
-    results = model.evaluate(model_input)
+    boxes = model.evaluate(model_input)
 	
     labels = []
-    for item in results:
-	    labels.append(item.label)
+    for box in boxes:
+	    labels.append('(%f,%f,%f,%f)' % (box.rectangle.x, box.rectangle.y, box.rectangle.x + box.rectangle.width, box.rectangle.y + box.rectangle.height))
 
     image = Image.frombytes("RGB", input_res[0:2], cam_buffer)
+
+    drawer = ImageDraw.Draw(image)
+    image_width, image_height = image.size
+
+    for box in boxes:
+        top_left = (int(box.rectangle.x * image_width),
+                    int(box.rectangle.y * image_height))
+        bottom_right = (
+            int((box.rectangle.x + box.rectangle.width) * image_width),
+            int((box.rectangle.y + box.rectangle.height) * image_height))
+        coords = [(top_left[0], top_left[1]),
+                  (top_left[0], bottom_right[1]),
+                  (bottom_right[0], bottom_right[1]),
+                  (bottom_right[0], top_left[1])]
+        coords += coords[0]
+        drawer.line(coords, fill=OUTLINE_COLOR, width=OUTLINE_WIDTH)
+
     byte_io = BytesIO()
     image.save(byte_io, 'JPEG', quality=70)
 
